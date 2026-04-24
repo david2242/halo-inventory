@@ -29,4 +29,4 @@ jobs:
       - name: Health check
         run: |
           sleep 10
-          curl -sf http://localhost/ | grep -q "Inventár" && echo "Deploy OK"
+          curl -sf http://localhost/health | grep -q "ok" && echo "Deploy OK"
