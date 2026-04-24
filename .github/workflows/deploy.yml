@@ -13,6 +13,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Validate secrets
+        run: |
+          if [ -z "${{ secrets.DB_PASSWORD }}" ] || [ -z "${{ secrets.SECRET_KEY }}" ]; then
+            echo "ERROR: DB_PASSWORD or SECRET_KEY secret is not set. Add them in repo Settings → Secrets."
+            exit 1
+          fi
+
       - name: Write .env
         run: |
           printf 'DB_PASSWORD=%s\nSECRET_KEY=%s\nAPP_DOMAIN=%s\n' \
