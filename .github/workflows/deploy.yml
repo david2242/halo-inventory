@@ -1,0 +1,32 @@
+name: Deploy
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Write .env
+        run: |
+          printf 'DB_PASSWORD=%s\nSECRET_KEY=%s\nAPP_DOMAIN=%s\n' \
+            "${{ secrets.DB_PASSWORD }}" \
+            "${{ secrets.SECRET_KEY }}" \
+            "${{ secrets.APP_DOMAIN }}" \
+            > deploy/.env
+
+      - name: Build and deploy
+        run: |
+          docker compose -f deploy/docker-compose.yml build
+          docker compose -f deploy/docker-compose.yml up -d
+
+      - name: Health check
+        run: |
+          sleep 10
+          curl -sf http://localhost/ | grep -q "Inventár" && echo "Deploy OK"
