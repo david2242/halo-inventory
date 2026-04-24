@@ -1,0 +1,34 @@
+services:
+  - type: web
+    name: halo-inventory-api
+    runtime: docker
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    plan: free
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: halo-inventory-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ENVIRONMENT
+        value: production
+    healthCheckPath: /health
+
+  - type: web
+    name: halo-inventory-frontend
+    runtime: node
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    startCommand: node .next/standalone/server.js
+    plan: free
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        value: https://halo-inventory-api.onrender.com/api/v1
+
+databases:
+  - name: halo-inventory-db
+    plan: free
+    databaseName: halo_inventory
+    user: halo_inventory

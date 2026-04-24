@@ -1,0 +1,74 @@
+# ── AI / Agentic workflow ──────────────────────────────────────────────────────
+agents/
+CLAUDE.md
+WORKFLOW.md
+USER-GUIDE.md
+docs/SLICES.md
+docs/RFC-manifest.json
+docs/RFC-manifest.schema.json
+
+
+# ── Python / Backend ──────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# pytest
+.pytest_cache/
+pytest-cache-files-*/
+.coverage
+htmlcov/
+coverage.xml
+
+# mypy / ruff
+.mypy_cache/
+.ruff_cache/
+
+# alembic
+# (versions/ és env/ fent maradnak — migration fájlokra szükség van)
+
+# ── Environment / Secrets ─────────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# ── Node / Frontend ───────────────────────────────────────────────────────────
+node_modules/
+.pnp
+.pnp.js
+
+# Next.js
+.next/
+out/
+
+# npm / yarn / pnpm
+.npm
+.yarn/cache
+.yarn/unplugged
+.pnpm-store/
+
+# Build output
+frontend/dist/
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+
+# ── IDE ───────────────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.code-workspace
