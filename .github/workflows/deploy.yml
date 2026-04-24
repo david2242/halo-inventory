@@ -31,6 +31,7 @@ jobs:
       - name: Build and deploy
         run: |
           docker compose -f deploy/docker-compose.yml build
+          docker compose -f deploy/docker-compose.yml up -d --force-recreate nginx
           docker compose -f deploy/docker-compose.yml up -d
 
       - name: Health check
