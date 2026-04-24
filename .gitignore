@@ -40,6 +40,7 @@ coverage.xml
 .env
 .env.local
 .env.*.local
+deploy/.env
 *.pem
 *.key
 

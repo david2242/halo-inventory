@@ -17,18 +17,6 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    # --- Enum types ---
-    op.execute("CREATE TYPE user_role AS ENUM ('director', 'delegate')")
-    op.execute(
-        "CREATE TYPE equipment_category AS ENUM "
-        "('laptop', 'desktop', 'printer', 'phone', 'tablet', 'monitor', 'projector', 'other')"
-    )
-    op.execute("CREATE TYPE equipment_status AS ENUM ('active', 'retired')")
-    op.execute(
-        "CREATE TYPE audit_session_status AS ENUM ('in_progress', 'completed')"
-    )
-    op.execute("CREATE TYPE check_method AS ENUM ('scan', 'manual')")
-
     # --- locations ---
     op.create_table(
         "locations",
@@ -59,7 +47,7 @@ def upgrade() -> None:
         sa.Column("full_name", sa.String(100), nullable=False),
         sa.Column(
             "role",
-            sa.Enum("director", "delegate", name="user_role", create_type=False),
+            sa.Enum("director", "delegate", name="user_role"),
             nullable=False,
         ),
         sa.Column(
@@ -93,16 +81,9 @@ def upgrade() -> None:
         sa.Column(
             "category",
             sa.Enum(
-                "laptop",
-                "desktop",
-                "printer",
-                "phone",
-                "tablet",
-                "monitor",
-                "projector",
-                "other",
+                "laptop", "desktop", "printer", "phone",
+                "tablet", "monitor", "projector", "other",
                 name="equipment_category",
-                create_type=False,
             ),
             nullable=False,
         ),
@@ -115,7 +96,7 @@ def upgrade() -> None:
         sa.Column("assigned_to", sa.String(100), nullable=True),
         sa.Column(
             "status",
-            sa.Enum("active", "retired", name="equipment_status", create_type=False),
+            sa.Enum("active", "retired", name="equipment_status"),
             nullable=False,
             server_default=sa.text("'active'::equipment_status"),
         ),
@@ -136,23 +117,15 @@ def upgrade() -> None:
         ),
         sa.Column("created_by_id", sa.UUID(), nullable=False),
         sa.ForeignKeyConstraint(["location_id"], ["locations.id"], ondelete="RESTRICT"),
-        sa.ForeignKeyConstraint(
-            ["created_by_id"], ["users.id"], ondelete="RESTRICT"
-        ),
-        sa.ForeignKeyConstraint(
-            ["retired_by_id"], ["users.id"], ondelete="SET NULL"
-        ),
+        sa.ForeignKeyConstraint(["created_by_id"], ["users.id"], ondelete="RESTRICT"),
+        sa.ForeignKeyConstraint(["retired_by_id"], ["users.id"], ondelete="SET NULL"),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index("ix_equipment_qr_code", "equipment", ["qr_code"], unique=True)
-    op.create_index(
-        "ix_equipment_location_status", "equipment", ["location_id", "status"]
-    )
-    # Partial unique index: serial_number unique only where not null
+    op.create_index("ix_equipment_location_status", "equipment", ["location_id", "status"])
     op.execute(
         "CREATE UNIQUE INDEX ix_equipment_serial_number_not_null "
-        "ON equipment (serial_number) "
-        "WHERE serial_number IS NOT NULL"
+        "ON equipment (serial_number) WHERE serial_number IS NOT NULL"
     )
 
     # --- audit_sessions ---
@@ -170,34 +143,19 @@ def upgrade() -> None:
         sa.Column("completed_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column(
             "status",
-            sa.Enum(
-                "in_progress",
-                "completed",
-                name="audit_session_status",
-                create_type=False,
-            ),
+            sa.Enum("in_progress", "completed", name="audit_session_status"),
             nullable=False,
             server_default=sa.text("'in_progress'::audit_session_status"),
         ),
         sa.Column("notes", sa.Text(), nullable=True),
-        sa.ForeignKeyConstraint(
-            ["location_id"], ["locations.id"], ondelete="RESTRICT"
-        ),
-        sa.ForeignKeyConstraint(
-            ["started_by_id"], ["users.id"], ondelete="RESTRICT"
-        ),
+        sa.ForeignKeyConstraint(["location_id"], ["locations.id"], ondelete="RESTRICT"),
+        sa.ForeignKeyConstraint(["started_by_id"], ["users.id"], ondelete="RESTRICT"),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(
-        "ix_audit_sessions_location_status",
-        "audit_sessions",
-        ["location_id", "status"],
-    )
-    # Partial unique index: at most one in_progress session per location
+    op.create_index("ix_audit_sessions_location_status", "audit_sessions", ["location_id", "status"])
     op.execute(
         "CREATE UNIQUE INDEX ix_audit_sessions_one_open_per_location "
-        "ON audit_sessions (location_id) "
-        "WHERE status = 'in_progress'"
+        "ON audit_sessions (location_id) WHERE status = 'in_progress'"
     )
 
     # --- audit_items ---
@@ -208,23 +166,15 @@ def upgrade() -> None:
         sa.Column("equipment_id", sa.UUID(), nullable=False),
         sa.Column(
             "check_method",
-            sa.Enum("scan", "manual", name="check_method", create_type=False),
+            sa.Enum("scan", "manual", name="check_method"),
             nullable=True,
         ),
         sa.Column("checked_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("is_present", sa.Boolean(), nullable=True),
-        sa.ForeignKeyConstraint(
-            ["audit_session_id"], ["audit_sessions.id"], ondelete="CASCADE"
-        ),
-        sa.ForeignKeyConstraint(
-            ["equipment_id"], ["equipment.id"], ondelete="RESTRICT"
-        ),
+        sa.ForeignKeyConstraint(["audit_session_id"], ["audit_sessions.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["equipment_id"], ["equipment.id"], ondelete="RESTRICT"),
         sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint(
-            "audit_session_id",
-            "equipment_id",
-            name="uq_audit_items_session_equipment",
-        ),
+        sa.UniqueConstraint("audit_session_id", "equipment_id", name="uq_audit_items_session_equipment"),
     )
     op.create_index("ix_audit_items_session_id", "audit_items", ["audit_session_id"])
 
@@ -235,7 +185,6 @@ def downgrade() -> None:
     op.drop_table("equipment")
     op.drop_table("users")
     op.drop_table("locations")
-
     op.execute("DROP TYPE IF EXISTS check_method")
     op.execute("DROP TYPE IF EXISTS audit_session_status")
     op.execute("DROP TYPE IF EXISTS equipment_status")
